@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Eliminar Reservas</title>
+    <!-- Add Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="js/js.js"></script>
+    <link rel="stylesheet" href="css/stylesheet.css">   
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Debug</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" href="Crear-Reservas.html">Crear</a>
+                <a class="nav-item nav-link" href="consultar_reservas.html">Consultar</a>
+                <a class="nav-item nav-link" href="Actualizar_reservas.html">Actualizar</a>
+                <a class="nav-item nav-link" href="eliminar_reservas.html">Eliminar</a>
+                <a class="nav-item nav-link" href="consultar_anulados.html">Reservas Anuladas</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container-xl">
+        <div class="table-responsive">
+            <div class="table-wrapper">
+                <div class="table-title">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h2>Reservas</h2>
+                        </div>
+                        <div class="col-sm-6">
+                            <button onclick="getSelectedEmployees()" class="btn btn-danger">Eliminar registros </button>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Seleccionar</th>
+                            <th>ID</th>
+                            <th>Fecha de Reserva</th>
+                            <th>Fecha de Inicio</th>
+                            <th>Fecha de Termino</th>
+                            <th>Nombre de Espacio Comun</th>
+                            <th>Tipo de Espacio Comun</th>
+                            <th>ID de departamento</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Add Bootstrap and jQuery JS scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script>
+        function loadEmployees() {
+            fetch('http://127.0.0.1:5000/reserva')
+                .then(response => response.json())
+                .then(data => {
+                    const employeeTableBody = document.getElementById('employeeTableBody');
+                    employeeTableBody.innerHTML = '';
+
+                    if (Array.isArray(data)) {
+                        data.forEach(employee => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                            <td><input type="checkbox"></td>
+                            <td>${employee.id_reserva_ec}</td>
+                            <td>${employee.fecha}</td>
+                            <td>${employee.hora_inicio}</td>
+                            <td>${employee.hora_termino}</td>
+                            <td>${employee.NombreEC}</td>
+                            <td>${employee.TipoEC}</td>
+                            <td>${employee.Dep}</td>`;
+                            if (employee.estado == 1) {
+                                row.innerHTML += `<td>Habilitado</td>`;
+                            } else {
+                                row.innerHTML += `<td>Deshabilitado</td>`;
+                            }
+                            employeeTableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function getSelectedEmployees() {
+            const selectedEmployees = [];
+            const employeeTableBody = document.getElementById('employeeTableBody');
+            const rows = employeeTableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const checkbox = rows[i].querySelector('input[type="checkbox"]');
+                if (checkbox.checked) {
+                    var id = rows[i].cells[1].textContent
+                    const employee = {
+                        id_reserva_ec: rows[i].cells[1].textContent,
+                        fecha: rows[i].cells[2].textContent,
+                        hora_inicio: rows[i].cells[3].textContent,
+                        hora_termino: rows[i].cells[4].textContent,
+                        NombreEC: rows[i].cells[5].textContent,
+                        TipoEC: rows[i].cells[6].textContent,
+                        Dep: rows[i].cells[7].textContent,
+                        estado: rows[i].cells[8].textContent
+                    };
+                    fetch(`http://127.0.0.1:5000/reserva/delete/` + id, {
+                        method: 'DELETE'
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log(`Registro con ID ${employee.id_reserva_ec} eliminado!.`);
+                                selectedEmployees.push(employee);
+                            } else {
+                                console.error(`No se pudo eliminar el registro con ID:  ${employee.id_reserva_ec}.`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error(`No se pudo eliminar el registro con ID: ${employee.id_reserva_ec}:`, error);
+                        });
+
+                    rows[i].remove();
+                    i--; 
+                }
+            }
+            return selectedEmployees;
+            loadEmployees();
+        }
+
+
+     
+        document.addEventListener('DOMContentLoaded', loadEmployees);
+    </script>
+
+
+</body>
+</html>
