@@ -3,7 +3,6 @@ import pymysql
 import requests
 import json
 from app import app
-from config import mysql
 from flask import jsonify
 from flask import flash, request
 
